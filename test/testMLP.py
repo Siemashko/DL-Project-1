@@ -1,5 +1,5 @@
 from MLP import MLP
-from MLP.loss import MSE
+from MLP.loss import MSE, CROSSENTROPY
 from MLP.activation import Activation
 from MLP.initialization import WeightInitialization
 import numpy as np
@@ -34,7 +34,7 @@ def test_MLP_classification():
               random_seed=2137,
               activation_functions=[Activation.SIGMOID, Activation.SIGMOID, Activation.SOFTMAX],
               problem_type=MLP.ProblemType.CLASSIFICATION,
-              loss_function=MSE)
+              loss_function=CROSSENTROPY)
 
 
     mlp.fit(reg_L1=0,
@@ -63,13 +63,15 @@ def test_MLP_regression():
     test = (test - data_mean) / data_std
 
     mlp = MLP(data,
-              y_train,
+              y_train.reshape(-1,1),
               hidden_layers=[13, 13],
               weight_initialization=WeightInitialization.HE,
               random_seed=2137,
               activation_functions=[Activation.SIGMOID, Activation.SIGMOID, Activation.LINEAR],
               problem_type=MLP.ProblemType.REGRESSION,
               loss_function=MSE)
+    y_test_predict = mlp.predict(test)
+    print(f"\n\nInitial MSE: {MSE(y_test_predict, y_test.reshape(-1,1))}")
 
     mlp.fit(reg_L1=0,
             reg_L2=0,
@@ -78,7 +80,7 @@ def test_MLP_regression():
             learning_rate=3e-3,
             momentum=0,
             test_data=test,
-            test_target=y_test)
+            test_target=y_test.reshape(-1,1))
+
     y_test_predict = mlp.predict(test)
-    print()
-    print(np.mean(y_test_predict == y_test))
+    print(f"\n\nPost training MSE: {MSE(y_test_predict, y_test.reshape(-1,1))}\n")
