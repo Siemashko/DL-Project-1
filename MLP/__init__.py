@@ -108,8 +108,8 @@ class MLP:
         data = StandardScaler().fit_transform(d)
 
         pca = PCA(n_components=2)
-        principalComponents = pca.fit_transform(data)
-        principalDf = pd.DataFrame(data=principalComponents,
+        principal_components = pca.fit_transform(data)
+        principal_df = pd.DataFrame(data=principal_components,
                                    columns=['principal component 1', 'principal component 2'])
 
         if predicted_values is not None:
@@ -119,17 +119,17 @@ class MLP:
         else:
             df_data = self.target
         df = pd.DataFrame(df_data, columns=["target"])
-        finalDf = pd.concat([principalDf, df], axis=1)
+        final_df = pd.concat([principal_df, df], axis=1)
 
         if self.problem_type is MLP.ProblemType.CLASSIFICATION:
             plt.xlabel('Principal Component 1', fontsize=15)
             plt.ylabel('Principal Component 2', fontsize=15)
             plt.title('2 component PCA', fontsize=20)
-            targets = np.unique(finalDf['target'])
+            targets = np.unique(final_df['target'])
             for target in targets:
-                indicesToKeep = finalDf['target'] == target
-                plt.scatter(finalDf.loc[indicesToKeep, 'principal component 1'],
-                            finalDf.loc[indicesToKeep, 'principal component 2'],
+                indices_to_keep = final_df['target'] == target
+                plt.scatter(final_df.loc[indices_to_keep, 'principal component 1'],
+                            final_df.loc[indices_to_keep, 'principal component 2'],
                             s=50)
             plt.legend(targets)
             plt.grid()
@@ -137,13 +137,13 @@ class MLP:
             cmap = sns.cubehelix_palette(as_cmap=True)
 
             if predicted_values is not None:
-                finalTarget = pd.Series(list(np.abs(predicted_values - expected_values)))
+                final_target = pd.Series(list(np.abs(predicted_values - expected_values)))
             else:
-                finalTarget = finalDf['target']
+                final_target = final_df['target']
 
             f, ax = plt.subplots()
-            points = ax.scatter(finalDf['principal component 1'], finalDf['principal component 2'],
-                                c=finalTarget, s=50, cmap=cmap)
+            points = ax.scatter(final_df['principal component 1'], final_df['principal component 2'],
+                                c=final_target, s=50, cmap=cmap)
             f.colorbar(points)
 
 
