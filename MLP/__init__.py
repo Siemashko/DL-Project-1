@@ -97,31 +97,52 @@ class MLP:
         plt.ylabel("loss")
         plt.legend(loc="upper right")
 
-    def pca(self):
+    def pca(self,
+            predicted_values: np.ndarray = None,
+            expected_values: np.ndarray = None,
+            test_data: np.ndarray = None):
         # https://towardsdatascience.com/pca-using-python-scikit-learn-e653f8989e60
-        data = StandardScaler().fit_transform(self.data)
+        d = self.data if predicted_values is None else test_data
+        data = StandardScaler().fit_transform(d)
 
         pca = PCA(n_components=2)
         principalComponents = pca.fit_transform(data)
         principalDf = pd.DataFrame(data=principalComponents,
                                    columns=['principal component 1', 'principal component 2'])
-        a = np.argmax(self.target, axis=1)
-        df = pd.DataFrame(a, columns=["target"])
+
+        if predicted_values is not None:
+            df_data = expected_values == predicted_values
+        elif self.problem_type is MLP.ProblemType.CLASSIFICATION:
+            df_data = np.argmax(self.target, axis=1)
+        else:
+            df_data = self.target
+        df = pd.DataFrame(df_data, columns=["target"])
         finalDf = pd.concat([principalDf, df], axis=1)
 
-        plt.xlabel('Principal Component 1', fontsize=15)
-        plt.ylabel('Principal Component 2', fontsize=15)
-        plt.title('2 component PCA', fontsize=20)
-        targets = [0, 1]
-        colors = ['r', 'g']
-        for target, color in zip(targets, colors):
-            indicesToKeep = finalDf['target'] == target
-            plt.scatter(finalDf.loc[indicesToKeep, 'principal component 1']
-                       , finalDf.loc[indicesToKeep, 'principal component 2']
-                       , c=color
-                       , s=50)
-        plt.legend(targets)
-        plt.grid()
+        if self.problem_type is MLP.ProblemType.CLASSIFICATION:
+            plt.xlabel('Principal Component 1', fontsize=15)
+            plt.ylabel('Principal Component 2', fontsize=15)
+            plt.title('2 component PCA', fontsize=20)
+            targets = np.unique(finalDf['target'])
+            for target in targets:
+                indicesToKeep = finalDf['target'] == target
+                plt.scatter(finalDf.loc[indicesToKeep, 'principal component 1'],
+                            finalDf.loc[indicesToKeep, 'principal component 2'],
+                            s=50)
+            plt.legend(targets)
+            plt.grid()
+        else:
+            cmap = sns.cubehelix_palette(as_cmap=True)
+
+            if predicted_values is not None:
+                finalTarget = pd.Series(list(np.abs(predicted_values - expected_values)))
+            else:
+                finalTarget = finalDf['target']
+
+            f, ax = plt.subplots()
+            points = ax.scatter(finalDf['principal component 1'], finalDf['principal component 2'],
+                                c=finalTarget, s=50, cmap=cmap)
+            f.colorbar(points)
 
 
     def correlation(self):
