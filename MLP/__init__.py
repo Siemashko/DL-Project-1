@@ -87,10 +87,12 @@ class MLP:
         return self._feedforward(data)[0]
 
     def print_loss_by_epoch(self):
-        loss_by_epoch = np.mean(np.abs(self.loss_values), axis=(1, 2))
+        loss_by_epoch = np.mean(np.abs(self.loss_values), axis=(1, 2)) if len(np.shape(self.loss_values)) == 3 \
+            else self.loss_values
         plt.plot(loss_by_epoch, label="train loss")
         if len(self.test_loss_values) > 0:
-            test_loss_by_epoch = np.mean(np.abs(self.test_loss_values), axis=(1, 2))
+            test_loss_by_epoch = np.mean(np.abs(self.test_loss_values), axis=(1, 2)) if len(np.shape(self.test_loss_values)) == 3 \
+                else self.test_loss_values
             plt.plot(test_loss_by_epoch, label="test loss")
 
         plt.xlabel("epoch")
