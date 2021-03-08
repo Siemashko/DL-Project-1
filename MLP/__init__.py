@@ -1,10 +1,17 @@
 from enum import Enum
 import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
 from typing import List
 from MLP.activation import Activation, activation_functions_gradients
 from MLP.initialization import WeightInitialization, weight_initialization_methods
 from MLP.helpers import chunks, regularization_matrix
 from tqdm import tqdm
+
+from sklearn.preprocessing import StandardScaler
+from sklearn.decomposition import PCA
+
 
 class MLP:
 
@@ -34,6 +41,7 @@ class MLP:
         self.layer_sizes = [self.data.shape[1]] + hidden_layers + [target.shape[1] if self.problem_type is MLP.ProblemType.CLASSIFICATION else 1]
         self.loss_function = loss_function
         self.loss_values = []
+        self.test_loss_values = []
 
         weights_init = weight_initialization_methods[self.weight_initialization]
 
@@ -45,7 +53,9 @@ class MLP:
             batch_size: int,
             epochs: int,
             learning_rate: float,
-            momentum: float) -> None:
+            momentum: float,
+            test_data: np.ndarray = None,
+            test_target: np.ndarray = None) -> None:
 
         momentum_values = [np.zeros((1 + self.layer_sizes[i], self.layer_sizes[i+1])) for i in range(len(self.layer_sizes)-1)]
         reg_matrices = regularization_matrix(self.layer_sizes)
@@ -62,6 +72,10 @@ class MLP:
                     for weight, weight_update, reg_matrix in zip(self.weights, weight_updates, reg_matrices)]
             y_predict, _ = self._feedforward(self.data)
             self.loss_values.append(self.loss_function(self.target, y_predict))
+            if test_data is not None and test_target is not None:
+                test_y_predict, _ = self._feedforward(test_data)
+                self.test_loss_values.append(self.loss_function(test_target, test_y_predict))
+
 
 
     def predict(self, data) -> np.ndarray:
@@ -71,6 +85,59 @@ class MLP:
 
     def predict_proba(self, data) -> np.ndarray:
         return self._feedforward(data)[0]
+
+    def print_loss_by_epoch(self):
+        loss_by_epoch = np.mean(np.abs(self.loss_values), axis=(1, 2))
+        plt.plot(loss_by_epoch, label="train loss")
+        if len(self.test_loss_values) > 0:
+            test_loss_by_epoch = np.mean(np.abs(self.test_loss_values), axis=(1, 2))
+            plt.plot(test_loss_by_epoch, label="test loss")
+
+        plt.xlabel("epoch")
+        plt.ylabel("loss")
+        plt.legend(loc="upper right")
+
+    def pca(self):
+        # https://towardsdatascience.com/pca-using-python-scikit-learn-e653f8989e60
+        data = StandardScaler().fit_transform(self.data)
+
+        pca = PCA(n_components=2)
+        principalComponents = pca.fit_transform(data)
+        principalDf = pd.DataFrame(data=principalComponents,
+                                   columns=['principal component 1', 'principal component 2'])
+        a = np.argmax(self.target, axis=1)
+        df = pd.DataFrame(a, columns=["target"])
+        finalDf = pd.concat([principalDf, df], axis=1)
+
+        plt.xlabel('Principal Component 1', fontsize=15)
+        plt.ylabel('Principal Component 2', fontsize=15)
+        plt.title('2 component PCA', fontsize=20)
+        targets = [0, 1]
+        colors = ['r', 'g']
+        for target, color in zip(targets, colors):
+            indicesToKeep = finalDf['target'] == target
+            plt.scatter(finalDf.loc[indicesToKeep, 'principal component 1']
+                       , finalDf.loc[indicesToKeep, 'principal component 2']
+                       , c=color
+                       , s=50)
+        plt.legend(targets)
+        plt.grid()
+
+
+    def correlation(self):
+        # https://mlwhiz.com/blog/2019/04/19/awesome_seaborn_visuals/
+        df = pd.DataFrame(self.data)
+        corr = df.corr()
+        g = sns.heatmap(corr, center=0, linewidths=.5, cbar_kws={"shrink": .5}, annot=True, fmt='.2f', cmap='coolwarm')
+        sns.despine()
+        g.figure.set_size_inches(14, 10)
+        # TODO: add labels
+
+    def result_visualization(self):
+        if self.problem_type is MLP.ProblemType.CLASSIFICATION:
+            pass
+        else:
+            pass
 
     def _feedforward(self, input_vector):
         layer_outputs = []
@@ -100,4 +167,3 @@ class MLP:
             weight_updates[i] = - layer_outputs[i].T @ delta
 
         return weight_updates
-
