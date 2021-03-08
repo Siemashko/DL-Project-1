@@ -3,6 +3,7 @@ from MLP.loss import MSE, CROSSENTROPY
 from MLP.activation import Activation
 from MLP.initialization import WeightInitialization
 import numpy as np
+import matplotlib.pyplot as plt
 
 from sklearn.datasets import load_breast_cancer
 from sklearn.datasets import load_boston
@@ -49,6 +50,18 @@ def test_MLP_classification():
     print()
     print(np.mean(y_test_predict == y_test))
 
+    mlp.correlation()
+    plt.show()
+
+    mlp.pca()
+    plt.show()
+
+    mlp.pca(y_test_predict, y_test, test)
+    plt.show()
+
+    mlp.print_loss_by_epoch()
+    plt.show()
+
 boston: dict = load_boston()
 data_boston: np.ndarray = boston['data']
 target_boston: np.ndarray = boston['target']
@@ -84,3 +97,19 @@ def test_MLP_regression():
 
     y_test_predict = mlp.predict(test)
     print(f"\n\nPost training MSE: {MSE(y_test_predict, y_test.reshape(-1,1))}\n")
+
+    mlp.correlation()
+    plt.show()
+
+    mlp.pca()
+    plt.show()
+
+    mlp.pca(y_test_predict, y_test.reshape(-1,1), test)
+    plt.show()
+
+    mlp.print_loss_by_epoch()
+    plt.show()
+
+
+test_MLP_classification()
+test_MLP_regression()
