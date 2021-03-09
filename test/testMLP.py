@@ -50,9 +50,6 @@ def test_MLP_classification():
     print()
     print(np.mean(y_test_predict == y_test))
 
-    mlp.correlation()
-    plt.show()
-
     mlp.pca()
     plt.show()
 
@@ -97,9 +94,6 @@ def test_MLP_regression():
 
     y_test_predict = mlp.predict(test)
     print(f"\n\nPost training MSE: {MSE(y_test_predict, y_test.reshape(-1,1))}\n")
-
-    mlp.correlation()
-    plt.show()
 
     mlp.pca()
     plt.show()

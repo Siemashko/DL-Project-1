@@ -86,6 +86,8 @@ class MLP:
     def predict_proba(self, data) -> np.ndarray:
         return self._feedforward(data)[0]
 
+    # region PLOTS
+
     def print_loss_by_epoch(self):
         loss_by_epoch = np.mean(np.abs(self.loss_values), axis=(1, 2)) if len(np.shape(self.loss_values)) == 3 \
             else self.loss_values
@@ -95,8 +97,9 @@ class MLP:
                 else self.test_loss_values
             plt.plot(test_loss_by_epoch, label="test loss")
 
-        plt.xlabel("epoch")
-        plt.ylabel("loss")
+        plt.title("Loss over epochs")
+        plt.xlabel("Epoch")
+        plt.ylabel("Loss")
         plt.legend(loc="upper right")
 
     def pca(self,
@@ -104,13 +107,15 @@ class MLP:
             expected_values: np.ndarray = None,
             test_data: np.ndarray = None):
         # https://towardsdatascience.com/pca-using-python-scikit-learn-e653f8989e60
+
+        # transforming data to 2D
         d = self.data if predicted_values is None else test_data
         data = StandardScaler().fit_transform(d)
 
         pca = PCA(n_components=2)
         principal_components = pca.fit_transform(data)
         principal_df = pd.DataFrame(data=principal_components,
-                                   columns=['principal component 1', 'principal component 2'])
+                                    columns=['principal component 1', 'principal component 2'])
 
         if predicted_values is not None:
             df_data = expected_values == predicted_values
@@ -121,10 +126,12 @@ class MLP:
         df = pd.DataFrame(df_data, columns=["target"])
         final_df = pd.concat([principal_df, df], axis=1)
 
+        # plots
+        plt.xlabel('Principal Component 1')
+        plt.ylabel('Principal Component 2')
+        plt.title('2 component PCA')
+
         if self.problem_type is MLP.ProblemType.CLASSIFICATION:
-            plt.xlabel('Principal Component 1', fontsize=15)
-            plt.ylabel('Principal Component 2', fontsize=15)
-            plt.title('2 component PCA', fontsize=20)
             targets = np.unique(final_df['target'])
             for target in targets:
                 indices_to_keep = final_df['target'] == target
@@ -132,7 +139,6 @@ class MLP:
                             final_df.loc[indices_to_keep, 'principal component 2'],
                             s=50)
             plt.legend(targets)
-            plt.grid()
         else:
             cmap = sns.cubehelix_palette(as_cmap=True)
 
@@ -141,26 +147,11 @@ class MLP:
             else:
                 final_target = final_df['target']
 
-            f, ax = plt.subplots()
-            points = ax.scatter(final_df['principal component 1'], final_df['principal component 2'],
-                                c=final_target, s=50, cmap=cmap)
-            f.colorbar(points)
+            plt.scatter(final_df['principal component 1'],
+                        final_df['principal component 2'],
+                        c=final_target, s=50, cmap=cmap)
 
-
-    def correlation(self):
-        # https://mlwhiz.com/blog/2019/04/19/awesome_seaborn_visuals/
-        df = pd.DataFrame(self.data)
-        corr = df.corr()
-        g = sns.heatmap(corr, center=0, linewidths=.5, cbar_kws={"shrink": .5}, annot=True, fmt='.2f', cmap='coolwarm')
-        sns.despine()
-        g.figure.set_size_inches(14, 10)
-        # TODO: add labels
-
-    def result_visualization(self):
-        if self.problem_type is MLP.ProblemType.CLASSIFICATION:
-            pass
-        else:
-            pass
+    # endregion
 
     def _feedforward(self, input_vector):
         layer_outputs = []
