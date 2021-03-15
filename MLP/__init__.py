@@ -43,6 +43,7 @@ class MLP:
         self.loss_function = loss_function
         self.loss_values = []
         self.test_loss_values = []
+        self.accuracy_values = []
 
         weights_init = weight_initialization_methods[self.weight_initialization]
 
@@ -76,6 +77,7 @@ class MLP:
             if test_data is not None and test_target is not None:
                 test_y_predict, _ = self._feedforward(test_data)
                 self.test_loss_values.append(self.loss_function(test_target, test_y_predict))
+            self.accuracy_values.append(np.mean(self.target == y_predict))
 
 
 
@@ -92,6 +94,7 @@ class MLP:
     def print_loss_by_epoch(self):
         loss_by_epoch = np.mean(np.abs(self.loss_values), axis=(1, 2)) if len(np.shape(self.loss_values)) == 3 \
             else self.loss_values
+        plt.figure()
         plt.plot(loss_by_epoch, label="train loss")
         if len(self.test_loss_values) > 0:
             test_loss_by_epoch = np.mean(np.abs(self.test_loss_values), axis=(1, 2)) if len(np.shape(self.test_loss_values)) == 3 \
@@ -183,6 +186,7 @@ class MLP:
     def scatter_regression(self,
                            expected_values: np.ndarray,
                            test_data: np.ndarray):
+        plt.figure()
         plt.scatter(test_data, expected_values)
 
         X = np.linspace(test_data.min(), test_data.max(), 100)
