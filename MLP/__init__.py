@@ -156,8 +156,8 @@ class MLP:
                                expected_values: np.ndarray,
                                test_data: np.ndarray):
         # Create color maps
-        cmap_light = ListedColormap(['#FFAAAA', '#AAFFAA', '#AAAAFF', '#AFAFAF'])
-        cmap_bold = ListedColormap(['#FF0000', '#00FF00', '#0000FF', '#AFAFAF'])
+        cmap_light = ListedColormap(['#FFAAAA', '#AAFFAA', '#AAAAFF'])
+        cmap_bold = ListedColormap(['#FF0000', '#00FF00', '#0000FF'])
 
         mesh_step_size = .01  # step size in the mesh
         plot_symbol_size = 50
