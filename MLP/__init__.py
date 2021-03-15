@@ -1,6 +1,7 @@
 from enum import Enum
 import numpy as np
 import pandas as pd
+from matplotlib.colors import ListedColormap
 import matplotlib.pyplot as plt
 import seaborn as sns
 from typing import List
@@ -150,6 +151,44 @@ class MLP:
             plt.scatter(final_df['principal component 1'],
                         final_df['principal component 2'],
                         c=final_target, s=50, cmap=cmap)
+
+    def scatter_classification(self,
+                               expected_values: np.ndarray,
+                               test_data: np.ndarray):
+        # Create color maps
+        cmap_light = ListedColormap(['#FFAAAA', '#AAFFAA', '#AAAAFF', '#AFAFAF'])
+        cmap_bold = ListedColormap(['#FF0000', '#00FF00', '#0000FF', '#AFAFAF'])
+
+        mesh_step_size = .01  # step size in the mesh
+        plot_symbol_size = 50
+
+        x_min, x_max = test_data[:, 0].min() - 1, test_data[:, 0].max() + 1
+        y_min, y_max = test_data[:, 1].min() - 1, test_data[:, 1].max() + 1
+        xx, yy = np.meshgrid(np.arange(x_min, x_max, mesh_step_size),
+                             np.arange(y_min, y_max, mesh_step_size))
+        Z = self.predict(np.c_[xx.ravel(), yy.ravel()])
+        # Put the result into a color plot
+        Z = Z.reshape(xx.shape)
+        plt.figure()
+        plt.pcolormesh(xx, yy, Z,
+                       cmap=cmap_light)
+        # Plot training points
+        plt.scatter(test_data[:, 0],
+                    test_data[:, 1],
+                    s=plot_symbol_size,
+                    c=expected_values,
+                    cmap=cmap_bold,
+                    edgecolor='black')
+
+    def scatter_regression(self,
+                           expected_values: np.ndarray,
+                           test_data: np.ndarray):
+        plt.scatter(test_data, expected_values)
+
+        X = np.linspace(test_data.min(), test_data.max(), 100)
+        Y = self.predict(X)
+
+        plt.plot(X, Y)
 
     # endregion
 
