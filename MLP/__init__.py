@@ -94,17 +94,17 @@ class MLP:
 
     # region PLOTS
 
-    def print_loss_by_epoch(self):
+    def print_loss_by_epoch(self, title=""):
         loss_by_epoch = np.mean(np.abs(self.loss_values), axis=(1, 2)) if len(np.shape(self.loss_values)) == 3 \
             else self.loss_values
-        plt.figure()
+        plt.figure(figsize=(10,6))
         plt.plot(loss_by_epoch, label="train loss")
         if len(self.test_loss_values) > 0:
             test_loss_by_epoch = np.mean(np.abs(self.test_loss_values), axis=(1, 2)) if len(np.shape(self.test_loss_values)) == 3 \
                 else self.test_loss_values
             plt.plot(test_loss_by_epoch, label="test loss")
 
-        plt.title("Loss over epochs")
+        plt.title(title + " Loss over epochs")
         plt.xlabel("Epoch")
         plt.ylabel("Loss")
         plt.legend(loc="upper right")
@@ -160,7 +160,8 @@ class MLP:
 
     def scatter_classification(self,
                                expected_values: np.ndarray,
-                               test_data: np.ndarray):
+                               test_data: np.ndarray,
+                               title=None):
         # Create color maps
         cmap_light = ListedColormap(['#FFAAAA', '#AAFFAA', '#AAAAFF'])
         cmap_bold = ListedColormap(['#FF0000', '#00FF00', '#0000FF'])
@@ -175,7 +176,8 @@ class MLP:
         Z = self.predict(np.c_[xx.ravel(), yy.ravel()])
         # Put the result into a color plot
         Z = Z.reshape(xx.shape)
-        plt.figure()
+        plt.figure(figsize=(10,6))
+        plt.title(title, fontsize=24)
         plt.pcolormesh(xx, yy, Z,
                        cmap=cmap_light)
         # Plot training points
@@ -188,13 +190,14 @@ class MLP:
 
     def scatter_regression(self,
                            expected_values: np.ndarray,
-                           test_data: np.ndarray):
-        plt.figure()
+                           test_data: np.ndarray,
+                           title=None):
+        plt.figure(figsize=(10,6))
         plt.scatter(test_data, expected_values, alpha=0.4)
 
         X = np.linspace(test_data.min(), test_data.max(), 100)
         Y = self.predict(X)
-
+        plt.title(title, fontsize=24)
         plt.plot(X, Y)
 
     # endregion
