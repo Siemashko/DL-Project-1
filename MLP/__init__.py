@@ -9,6 +9,9 @@ from MLP.activation import Activation, activation_functions_gradients
 from MLP.initialization import WeightInitialization, weight_initialization_methods
 from MLP.helpers import chunks, regularization_matrix
 from tqdm import tqdm
+import networkx as nx
+from networkx.drawing.nx_agraph import graphviz_layout
+
 
 from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
@@ -187,7 +190,7 @@ class MLP:
                            expected_values: np.ndarray,
                            test_data: np.ndarray):
         plt.figure()
-        plt.scatter(test_data, expected_values)
+        plt.scatter(test_data, expected_values, alpha=0.4)
 
         X = np.linspace(test_data.min(), test_data.max(), 100)
         Y = self.predict(X)
@@ -224,3 +227,18 @@ class MLP:
             weight_updates[i] = - layer_outputs[i].T @ delta
 
         return weight_updates
+
+    def visualize_architecture(self):
+        G = nx.DiGraph()
+        edges = []
+        baseline = 0
+        for layer in self.weights:
+            n, m = layer.shape
+            for i in range(n):
+                for j in range(m):
+                    edges.append([baseline+i, baseline+n+j+1, layer[i,j]])
+            baseline += n
+        G.add_weighted_edges_from(edges)
+        pos = graphviz_layout(G, prog='dot', args="-Grankdir=LR")
+        nx.draw(G, with_labels=True, pos=pos, font_weight='bold')
+        plt.show()

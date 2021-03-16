@@ -37,7 +37,9 @@ def test_MLP_classification():
               problem_type=MLP.ProblemType.CLASSIFICATION,
               loss_function=CROSSENTROPY)
 
-
+    y_test_predict = mlp.predict(test)
+    print()
+    print(f"Initial accuracy: {np.mean(y_test_predict == y_test)}")
     mlp.fit(reg_L1=0,
             reg_L2=0,
             batch_size=30,
@@ -48,7 +50,7 @@ def test_MLP_classification():
             test_target=test_target)
     y_test_predict = mlp.predict(test)
     print()
-    print(np.mean(y_test_predict == y_test))
+    print(f"Post training accuracy: {np.mean(y_test_predict == y_test)}")
 
     mlp.pca()
     plt.show()
@@ -80,6 +82,7 @@ def test_MLP_regression():
               activation_functions=[Activation.SIGMOID, Activation.SIGMOID, Activation.LINEAR],
               problem_type=MLP.ProblemType.REGRESSION,
               loss_function=MSE)
+    mlp.visualize_architecture()
     y_test_predict = mlp.predict(test)
     print(f"\n\nInitial MSE: {MSE(y_test_predict, y_test.reshape(-1,1))}")
 
